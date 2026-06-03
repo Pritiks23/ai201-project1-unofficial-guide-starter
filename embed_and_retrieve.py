@@ -1,121 +1,110 @@
-import chromadb
+import numpy as np
 from sentence_transformers import SentenceTransformer
-import uuid
+from ingestion import run
 
 # ----------------------------
-# LOAD MODEL (LOCAL EMBEDDING)
+# LOAD EMBEDDING MODEL
 # ----------------------------
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 # ----------------------------
-# INIT CHROMA DB (LOCAL PERSISTENCE)
+# SIMPLE VECTOR STORE (IN MEMORY)
 # ----------------------------
-client = chromadb.PersistentClient(path="./chroma_db")
+class SimpleVectorStore:
+    def __init__(self):
+        self.vectors = []
+        self.texts = []
+        self.sources = []
+        self.chunk_ids = []
 
-collection = client.get_or_create_collection(
-    name="docker_rag"
-)
+    def add(self, embeddings, chunks):
+        for emb, chunk in zip(embeddings, chunks):
+            self.vectors.append(emb)
+            self.texts.append(chunk["text"])
+            self.sources.append(chunk["source"])
+            self.chunk_ids.append(chunk["chunk_id"])
+
+    def search(self, query_embedding, k=4):
+        scores = []
+
+        for vec in self.vectors:
+            # cosine similarity
+            score = np.dot(query_embedding, vec) / (
+                np.linalg.norm(query_embedding) * np.linalg.norm(vec)
+            )
+            scores.append(score)
+
+        top_k_idx = np.argsort(scores)[::-1][:k]
+
+        results = []
+        for idx in top_k_idx:
+            results.append({
+                "text": self.texts[idx],
+                "source": self.sources[idx],
+                "chunk_id": self.chunk_ids[idx],
+                "score": float(scores[idx])
+            })
+
+        return results
 
 
 # ----------------------------
-# EMBED + STORE CHUNKS
+# BUILD INDEX
 # ----------------------------
-def embed_chunks(chunks):
-    """
-    Takes chunks from ingestion pipeline and stores them in ChromaDB
-    """
+def build_index(chunks):
+    print("Embedding chunks...")
 
-    texts = []
-    metadatas = []
-    ids = []
-
-    for i, chunk in enumerate(chunks):
-        texts.append(chunk["text"])
-
-        metadatas.append({
-            "source": chunk["source"],
-            "chunk_id": chunk["chunk_id"]
-        })
-
-        # unique id per chunk
-        ids.append(str(uuid.uuid4()))
-
+    texts = [c["text"] for c in chunks]
     embeddings = model.encode(texts, show_progress_bar=True)
 
-    collection.add(
-        documents=texts,
-        embeddings=embeddings.tolist(),
-        metadatas=metadatas,
-        ids=ids
-    )
+    store = SimpleVectorStore()
+    store.add(embeddings, chunks)
 
-    print(f"✅ Embedded and stored {len(texts)} chunks")
+    return store
 
 
 # ----------------------------
 # RETRIEVAL FUNCTION
 # ----------------------------
-def retrieve(query, k=4):
-    """
-    Returns top-k relevant chunks + metadata + distance
-    """
+def retrieve(store, query, k=4):
+    query_emb = model.encode(query)
 
-    query_embedding = model.encode([query]).tolist()
-
-    results = collection.query(
-        query_embeddings=query_embedding,
-        n_results=k
-    )
-
-    chunks = []
-
-    for i in range(len(results["documents"][0])):
-
-        chunks.append({
-            "text": results["documents"][0][i],
-            "source": results["metadatas"][0][i]["source"],
-            "chunk_id": results["metadatas"][0][i]["chunk_id"],
-            "distance": results["distances"][0][i]
-        })
-
-    return chunks
+    return store.search(query_emb, k=k)
 
 
 # ----------------------------
-# DEBUG / TESTING
+# TESTING
 # ----------------------------
-def test_retrieval(queries):
+def test(store):
+    queries = [
+        "What is Docker used for?",
+        "How does Kubernetes scaling work?",
+        "Docker container security best practices"
+    ]
+
     for q in queries:
         print("\n" + "=" * 60)
         print("QUERY:", q)
 
-        results = retrieve(q, k=4)
+        results = retrieve(store, q)
 
         for r in results:
             print("\n--- RESULT ---")
             print("SOURCE:", r["source"])
-            print("CHUNK_ID:", r["chunk_id"])
-            print("DISTANCE:", round(r["distance"], 4))
-            print(r["text"][:400])
+            print("CHUNK ID:", r["chunk_id"])
+            print("SCORE:", round(r["score"], 4))
+            print(r["text"][:300])
 
 
 # ----------------------------
-# MAIN (TEST RUN)
+# MAIN
 # ----------------------------
 if __name__ == "__main__":
-
-    # TEMP: import your ingestion output
-    from ingestion import run
-
     docs, chunks = run()
 
-    embed_chunks(chunks)
+    print(f"\nLoaded {len(chunks)} chunks")
 
-    test_queries = [
-        "What is Docker and how do containers work?",
-        "How does Kubernetes manage scaling?",
-        "What are best practices for Docker security?"
-    ]
+    store = build_index(chunks)
 
-    test_retrieval(test_queries)
+    test(store)
