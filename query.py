@@ -1,44 +1,87 @@
-import chromadb
 from sentence_transformers import SentenceTransformer
 from llm import generate_answer
+import numpy as np
 
+# ----------------------------
+# EMBEDDING MODEL
+# ----------------------------
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
-collection = chroma_client.get_or_create_collection(name="docs")
+
+# ----------------------------
+# LOAD CHUNKS
+# ----------------------------
+# Expecting: [{"text": ..., "source": ..., "chunk_id": ...}, ...]
+# You should pass this from ingestion OR save/load JSON
+from ingestion import run
+
+docs, CHUNKS = run()
+
+texts = [c["text"] for c in CHUNKS]
+metas = [{"source": c["source"], "chunk_id": c["chunk_id"]} for c in CHUNKS]
+
+print(f"Loaded {len(CHUNKS)} chunks for retrieval")
 
 
+# ----------------------------
+# PRECOMPUTE EMBEDDINGS
+# ----------------------------
+print("Embedding chunks...")
+chunk_embeddings = embed_model.encode(texts, normalize_embeddings=True)
+
+
+# ----------------------------
+# RETRIEVAL (COSINE SIMILARITY)
+# ----------------------------
 def retrieve(query, k=4):
-    query_emb = embed_model.encode([query]).tolist()
+    query_emb = embed_model.encode(query, normalize_embeddings=True)
 
-    results = collection.query(
-        query_embeddings=query_emb,
-        n_results=k,
-        include=["documents", "metadatas", "distances"]
-    )
+    # cosine similarity via dot product (because normalized)
+    scores = np.dot(chunk_embeddings, query_emb)
 
-    chunks = []
+    top_k_idx = np.argsort(scores)[::-1][:k]
 
-    for i in range(len(results["documents"][0])):
-        chunks.append({
-            "text": results["documents"][0][i],
-            "source": results["metadatas"][0][i]["source"],
-            "chunk_id": results["metadatas"][0][i].get("chunk_id", i),
-            "distance": results["distances"][0][i],
+    results = []
+    for idx in top_k_idx:
+        results.append({
+            "text": texts[idx],
+            "source": metas[idx]["source"],
+            "chunk_id": metas[idx]["chunk_id"],
+            "distance": float(scores[idx])
         })
 
-    return chunks
+    return results
 
 
+# ----------------------------
+# ASK (GROUNDED GENERATION)
+# ----------------------------
 def ask(question):
     chunks = retrieve(question, k=4)
 
-    contexts = [
-        {"text": c["text"], "source": c["source"]}
-        for c in chunks
-    ]
+    context_text = "\n\n".join(
+        [f"[SOURCE: {c['source']}]\n{c['text']}" for c in chunks]
+    )
 
-    answer = generate_answer(question, contexts)
+    prompt = f"""
+You are a grounded QA system.
+
+RULES:
+- Use ONLY the provided context.
+- If answer is not in context, say: "I don't have enough information."
+- Do NOT use outside knowledge.
+- Always be precise and factual.
+
+CONTEXT:
+{context_text}
+
+QUESTION:
+{question}
+
+ANSWER:
+"""
+
+    answer = generate_answer(prompt)
 
     return {
         "answer": answer,
