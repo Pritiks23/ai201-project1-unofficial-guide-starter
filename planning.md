@@ -20,14 +20,14 @@
 
 | # | Source | Description | URL or location |
 |---|--------|-------------|-----------------|
-| 1 | Docker Documentation|Official Doc | https://docs.docker.com|
-| 2 | Docker Blog|Official Blog |https://www.docker.com/blog |
-| 3 | Reddit Docker Community| Reddit| https://www.reddit.com/r/docker/?utm_source=chatgpt.com|
-| 4 | Reddit DevOps Community|DevOps Forum | https://www.reddit.com/r/devops/?utm_source=chatgpt.com|
-| 5 | Reddit Kubernetes Community|Reddit Kubernetes Forum |https://www.reddit.com/r/kubernetes/?utm_source=chatgpt.com |
-| 6 | Stack Overflow|Docker Stack Overflow | https://stackoverflow.com/questions/tagged/docker?utm_source=chatgpt.com|
-| 7 |Netflix Blog| Engineering Blog Netflix|https://netflixtechblog.com/?utm_source=chatgpt.com |
-| 8 | Uber Engineering Blog |Uber Blog | https://www.uber.com/blog/engineering/?utm_source=chatgpt.com|
+| 1 | HashiCorp terraform|HashiCorp terraform | https://developer.hashicorp.com/terraform|
+| 2 | Amazon Docker|Amazon Docker |https://aws.amazon.com/docker/ |
+| 3 | AWS Container Blog| AWS Container Blog| https://aws.amazon.com/blogs/containers/|
+| 4 | Geeks for Geeks|Geeks for Geeks | https://www.geeksforgeeks.org/devops/introduction-to-docker/|
+| 5 | Microsoft Azure Containers Blog|Microsoft Azure Containers Blog |https://azure.microsoft.com/en-us/blog/topics/containers/ |
+| 6 | Docker Curriculum|Docker Curriculum| https://docker-curriculum.com/|
+| 7 |Kubernetes deep content| Kubernetes deep content|https://kubernetes.io/blog |
+| 8 | IBM |IBM | https://www.ibm.com/think/topics/docker|
 | 9 | Spotify Engineering Blog|Spotify Engineering |https://engineering.atspotify.com/?utm_source=chatgpt.com |
 | 10 | Kubernetes official Doc|Kubernetes Official Doc |https://kubernetes.io/docs/?utm_source=chatgpt.com |
 
