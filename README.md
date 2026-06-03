@@ -23,18 +23,19 @@ This makes it a strong candidate for a retrieval-augmented system because users 
      Be specific: include URLs, subreddit names, forum thread titles, or file names.
      Aim for variety — sources that together cover different subtopics or perspectives. -->
 
-| # | Source | Type | URL or file path |
-|---|--------|------|-----------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
-| 6 | | | |
-| 7 | | | |
-| 8 | | | |
-| 9 | | | |
-| 10 | | | |
+| # | Source | Description | URL or location |
+|---|--------|-------------|-----------------|
+| 1 | HashiCorp terraform|HashiCorp terraform | https://developer.hashicorp.com/terraform|
+| 2 | Amazon Docker|Amazon Docker |https://aws.amazon.com/docker/ |
+| 3 | AWS Container Blog| AWS Container Blog| https://aws.amazon.com/blogs/containers/|
+| 4 | Geeks for Geeks|Geeks for Geeks | https://www.geeksforgeeks.org/devops/introduction-to-docker/|
+| 5 | Microsoft Azure Containers Blog|Microsoft Azure Containers Blog |https://azure.microsoft.com/en-us/blog/topics/containers/ |
+| 6 | Docker Curriculum|Docker Curriculum| https://docker-curriculum.com/|
+| 7 |Kubernetes deep content| Kubernetes deep content|https://kubernetes.io/blog |
+| 8 | IBM |IBM | https://www.ibm.com/think/topics/docker|
+| 9 | Spotify Engineering Blog|Spotify Engineering |https://engineering.atspotify.com/?utm_source=chatgpt.com |
+| 10 | Kubernetes official Doc|Kubernetes Official Doc |https://kubernetes.io/docs/?utm_source=chatgpt.com |
+
 
 ---
 
