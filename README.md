@@ -9,10 +9,11 @@
 
 ## Domain
 
-<!-- What topic or category of knowledge does your system cover?
-     Why is this knowledge valuable, and why is it hard to find through official channels?
-     Example: "Student reviews of CS professors at [university] — useful because official
-     course descriptions don't reflect teaching style, exam difficulty, or workload." -->
+<!-- This project focuses on how Docker is used in real production systems, including containerization workflows, orchestration with Kubernetes, CI/CD pipelines, scaling strategies, and security practices.
+
+This domain is valuable because Docker is a foundational technology in modern software engineering and DevOps. However, practical knowledge—such as production failures, deployment strategies, and operational tradeoffs—is often not fully covered in official documentation. Instead, it is distributed across engineering blogs, cloud provider articles, and community-driven technical resources.
+
+This makes it a strong candidate for a retrieval-augmented system because users need to synthesize information across multiple heterogeneous sources rather than rely on a single documentation site. -->
 
 ---
 
@@ -46,13 +47,15 @@
      - Any preprocessing you did before chunking (e.g., stripping HTML, removing headers)
      - What your final chunk count was across all documents -->
 
-**Chunk size:**
+**Chunk size: 500 tokens**
 
-**Overlap:**
+**Overlap: 100 tokens**
 
-**Why these choices fit your documents:**
+**Why these choices fit your documents: A 500-token chunk preserves enough semantic and technical context for infrastructure-related content such as Docker workflows, Kubernetes scaling behavior, and cloud architecture discussions. These topics often span multiple sentences describing systems rather than isolated facts.
 
-**Final chunk count:**
+A 100-token overlap prevents loss of meaning at chunk boundaries, especially for procedural or step-based explanations (e.g., deployment pipelines or configuration instructions), where a single step split across chunks would degrade retrieval quality. **
+
+**Final chunk count: ~84 chunks (varied depending on page extraction quality and filtering)**
 
 ---
 
@@ -64,9 +67,16 @@
      Consider: context length limits, multilingual support, accuracy on domain-specific text,
      latency, and local vs. API-hosted. -->
 
-**Model used:**
+**Model used: all-MiniLM-L6-v2 from Sentence Transformers**
 
-**Production tradeoff reflection:**
+**Production tradeoff reflection: This model was chosen because it provides strong semantic representation while remaining lightweight and fast for local execution. It performs well for technical text where meaning is structured but not overly ambiguous.
+
+In a production system, tradeoffs would include:
+
+Larger embedding models (e.g., bge-large, OpenAI embeddings) improve semantic accuracy but increase cost and latency.
+Multilingual models would be preferred if documentation spans multiple languages.
+API-hosted embeddings improve quality and reduce local compute constraints but introduce cost and dependency on external services.
+Context-aware embeddings (long-context models) may better handle large technical sections but reduce throughput.**
 
 ---
 
@@ -79,9 +89,21 @@
      Do not just say "I told it to use the documents" — show the actual instruction or explain
      the mechanism. -->
 
-**System prompt grounding instruction:**
+**System prompt grounding instruction: “You are a grounded QA system.
+Use ONLY the provided context.
+If the answer is not contained in the context, respond: ‘I don’t have enough information.’
+Do NOT use external knowledge.”**
 
-**How source attribution is surfaced in the response:**
+**How source attribution is surfaced in the response: The retrieved chunks are formatted as:
+
+[SOURCE: <url>]
+<chunk text>
+
+This ensures the model sees explicit provenance per chunk, reinforcing source-bound reasoning. Source attribution is not left to the model. Instead:
+
+Retrieved chunks include explicit source metadata
+The system returns a deduplicated list of source URLs alongside the generated answer
+Each response includes a structured "sources" field returned programmatically from retrieval results**
 
 ---
 
@@ -93,11 +115,11 @@
 
 | # | Question | Expected answer | System response (summarized) | Retrieval quality | Response accuracy |
 |---|----------|-----------------|------------------------------|-------------------|-------------------|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
-| 4 | | | | | |
-| 5 | | | | | |
+| 1 | Why do companies use Docker in production environments?| Portability, consistency, scalability, deployment efficiency|Correct explanation of Docker enabling consistent environments and fast deployment |Relevant | |
+| 2 | What are security concerns in Docker?| Root containers, image vulnerabilities, exposed secrets, privileges|Mentioned container isolation limits and security risks | Relevant| |
+| 3 |How does Docker support CI/CD? | Reproducible builds, consistent environments| Explained containerization for deployment pipelines| Relevant| |
+| 4 |Why use Kubernetes with Docker? | Orchestration, scaling, self-healing|Correct explanation of orchestration layer |Relevant | |
+| 5 |Docker image vs container?|Image = template, container = runtime instance |Clearly distinguished both concepts |Relevant | |
 
 **Retrieval quality:** Relevant / Partially relevant / Off-target  
 **Response accuracy:** Accurate / Partially accurate / Inaccurate
@@ -117,13 +139,17 @@
      "The embedding model treated the professor's nickname as out-of-vocabulary and returned
      results from an unrelated review" is an explanation. -->
 
-**Question that failed:**
+**Question that failed: How does Kubernetes scaling work internally?**
 
-**What the system returned:**
+**What the system returned: A general explanation of Kubernetes as an orchestration system, but no detailed scaling mechanics (HPA, cluster autoscaling, scheduling policies).**
 
-**Root cause (tied to a specific pipeline stage):**
+**Root cause (tied to a specific pipeline stage): Retrieval limitation: the Kubernetes-related chunks were high-level documentation summaries rather than deep technical explanations. The embedding model retrieved general overview content instead of detailed scaling mechanics due to:
 
-**What you would change to fix it:**
+Chunk granularity being too coarse for specific subtopics
+Source documents containing mostly introductory-level text in some sections**
+
+**What you would change to fix it: ncrease chunk diversity by separating conceptual vs implementation sections
+Improve retrieval with reranking or hybrid keyword + semantic search**
 
 ---
 
@@ -132,9 +158,9 @@
 <!-- Reflect on how planning.md shaped your implementation.
      Answer both questions with at least 2–3 sentences each. -->
 
-**One way the spec helped you during implementation:**
+**One way the spec helped you during implementation: The spec enforced a clear pipeline structure (ingestion → chunking → embedding → retrieval → generation), which made it easier to debug each stage independently. This separation allowed retrieval issues to be identified without involving the LLM, which significantly reduced debugging complexity.**
 
-**One way your implementation diverged from the spec, and why:**
+**One way your implementation diverged from the spec, and why: Instead of using a vector database like ChromaDB, the implementation used in-memory embeddings with cosine similarity. This divergence was necessary due to dependency conflicts in the runtime environment (Python 3.14 compatibility issues with ChromaDB and related packages). The simplified approach ensured system stability while preserving retrieval correctness.**
 
 ---
 
@@ -151,12 +177,12 @@
 
 **Instance 1**
 
-- *What I gave the AI:*
-- *What it produced:*
-- *What I changed or overrode:*
+- *What I gave the AI: My ingestion pipeline + chunking strategy + request to improve extraction robustness*
+- *What it produced:A revised ingestion script with multi-pass Trafilatura extraction and better chunk filtering *
+- *What I changed or overrode: I adjusted chunk size and removed unstable document sources that were failing extraction (e.g., Netflix/Uber pages)*
 
 **Instance 2**
 
-- *What I gave the AI:*
-- *What it produced:*
-- *What I changed or overrode:*
+- *What I gave the AI:Error logs from ChromaDB + Gradio + Pydantic installation failures*
+- *What it produced: Suggested fixes including dependency resolution and fallback retrieval design (cosine similarity without vector DB)*
+- *What I changed or overrode: I removed ChromaDB entirely and replaced it with a lightweight embedding + numpy similarity implementation to ensure the system could run reliably in my environment*
