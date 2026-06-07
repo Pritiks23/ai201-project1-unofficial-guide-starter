@@ -120,7 +120,7 @@ Each response includes a structured "sources" field returned programmatically fr
 | 2 | What are security concerns in Docker?| Root containers, image vulnerabilities, exposed secrets, privileges|Mentioned container isolation limits and security risks | Relevant|Accurate |
 | 3 |How does Docker support CI/CD? | Reproducible builds, consistent environments| Explained containerization for deployment pipelines| Relevant| Accurate|
 | 4 |Why use Kubernetes with Docker? | Orchestration, scaling, self-healing|Correct explanation of orchestration layer |Relevant |Accurate |
-| 5 |Docker image vs container?|Image = template, container = runtime instance |Clearly distinguished both concepts |Relevant| |Accurate|Accurate|
+| 5 |Docker image vs container?|Image = template, container = runtime instance |Clearly distinguished both concepts |Relevant| Accurate
 
 **Retrieval quality:** Relevant / Partially relevant / Off-target  
 **Response accuracy:** Accurate / Partially accurate / Inaccurate
