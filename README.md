@@ -116,11 +116,11 @@ Each response includes a structured "sources" field returned programmatically fr
 
 | # | Question | Expected answer | System response (summarized) | Retrieval quality | Response accuracy |
 |---|----------|-----------------|------------------------------|-------------------|-------------------|
-| 1 | Why do companies use Docker in production environments?| Portability, consistency, scalability, deployment efficiency|Correct explanation of Docker enabling consistent environments and fast deployment |Relevant | |
-| 2 | What are security concerns in Docker?| Root containers, image vulnerabilities, exposed secrets, privileges|Mentioned container isolation limits and security risks | Relevant| |
-| 3 |How does Docker support CI/CD? | Reproducible builds, consistent environments| Explained containerization for deployment pipelines| Relevant| |
-| 4 |Why use Kubernetes with Docker? | Orchestration, scaling, self-healing|Correct explanation of orchestration layer |Relevant | |
-| 5 |Docker image vs container?|Image = template, container = runtime instance |Clearly distinguished both concepts |Relevant | |
+| 1 | Why do companies use Docker in production environments?| Portability, consistency, scalability, deployment efficiency|Correct explanation of Docker enabling consistent environments and fast deployment |Relevant | Accurate|
+| 2 | What are security concerns in Docker?| Root containers, image vulnerabilities, exposed secrets, privileges|Mentioned container isolation limits and security risks | Relevant|Accurate |
+| 3 |How does Docker support CI/CD? | Reproducible builds, consistent environments| Explained containerization for deployment pipelines| Relevant| Accurate|
+| 4 |Why use Kubernetes with Docker? | Orchestration, scaling, self-healing|Correct explanation of orchestration layer |Relevant |Accurate |
+| 5 |Docker image vs container?|Image = template, container = runtime instance |Clearly distinguished both concepts |Relevant | |Accurate|
 
 **Retrieval quality:** Relevant / Partially relevant / Off-target  
 **Response accuracy:** Accurate / Partially accurate / Inaccurate
