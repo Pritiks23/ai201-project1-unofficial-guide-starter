@@ -3,6 +3,7 @@ from query import ask
 
 
 def handle_query(question):
+    print("BUTTON CLICKED")
     result = ask(question)
 
     sources = "\n".join([f"• {s}" for s in result["sources"]])
@@ -26,3 +27,17 @@ with gr.Blocks() as demo:
     inp.submit(handle_query, inputs=inp, outputs=[answer, sources])
 
 demo.launch()
+# import gradio as gr
+
+# def hello(text):
+#     print("BUTTON WORKED")
+#     return f"You typed: {text}"
+
+# with gr.Blocks() as demo:
+#     inp = gr.Textbox()
+#     btn = gr.Button("Ask")
+#     out = gr.Textbox()
+
+#     btn.click(hello, inputs=inp, outputs=out)
+
+# demo.launch()

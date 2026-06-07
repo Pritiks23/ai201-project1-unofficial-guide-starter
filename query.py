@@ -59,29 +59,10 @@ def retrieve(query, k=4):
 def ask(question):
     chunks = retrieve(question, k=4)
 
-    context_text = "\n\n".join(
-        [f"[SOURCE: {c['source']}]\n{c['text']}" for c in chunks]
+    answer = generate_answer(
+        question=question,
+        contexts=chunks
     )
-
-    prompt = f"""
-You are a grounded QA system.
-
-RULES:
-- Use ONLY the provided context.
-- If answer is not in context, say: "I don't have enough information."
-- Do NOT use outside knowledge.
-- Always be precise and factual.
-
-CONTEXT:
-{context_text}
-
-QUESTION:
-{question}
-
-ANSWER:
-"""
-
-    answer = generate_answer(prompt)
 
     return {
         "answer": answer,
